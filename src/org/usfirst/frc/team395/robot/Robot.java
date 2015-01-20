@@ -57,8 +57,8 @@ public class Robot extends IterativeRobot {
 		
 		//Gripper
 		gripper = new Talon(gripperMotorChannel);
-	    gripPulser = new PulseController(gripper);
-	    gripPulser.setPulseTime(gripperPulseTime);
+	    	gripPulser = new PulseController(gripper);
+	    	gripPulser.setPulseTime(gripperPulseTime);
 		
 		// JOYSTICK
 		driveStick = new Joystick(driveStickChannel);
