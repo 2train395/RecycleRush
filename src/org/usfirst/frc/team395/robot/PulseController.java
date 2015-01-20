@@ -18,7 +18,7 @@ public class PulseController {
 	 * defined after initial construction using setPulsetime(double) for
 	 * pulse times up to a certain upper limit. Initially PulseControllers
 	 * are set to be off.
-	 * @param m Elevator motor.
+	 * @param m
 	 */
 	public PulseController(Talon m){
 		
