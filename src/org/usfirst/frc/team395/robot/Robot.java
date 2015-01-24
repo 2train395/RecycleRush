@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.*;
 public class Robot extends IterativeRobot {
 
 	// DRIVE
-	RobotDrive ;
+	RobotDrive robotDrive; // TEST
 	final int frontLeftChannel	= 1;
 	final int rearLeftChannel	= 2;
 	final int frontRightChannel	= 3;
