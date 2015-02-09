@@ -100,7 +100,7 @@ public class PulseController {
 	 * @param downAxis double taken from the rawAxis value on the
 	 * joystick of choice representing 'down' (or 'in', etc)
 	 */
-	public void pulseControl(double upAxis, double downAxis){
+/*	public void pulseControl(double upAxis, double downAxis){
 		
 		if ((upAxis > 0.5) && (downAxis < 0.5) && !pulsing) {
 			pulsing = true;
@@ -133,5 +133,5 @@ public class PulseController {
 			timer.stop();
 		}
 	}
-	
+	*/
 }
