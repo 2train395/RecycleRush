@@ -43,9 +43,9 @@ public class Robot extends IterativeRobot {
 	final int LIFT_TOP_LIMIT_DIO_CHANNEL = 2;
 	final int LIFT_BOTTOM_LIMIT_DIO_CHANNEL = 3;
 	final int LIFT_MOTOR_CHANNEL = 5;
-	final double LIFT_PID_GAIN_P = 0.005;   // tuned!
-	final double LIFT_PID_GAIN_I = 0.000;   // probably don't need I for positional
-	final double LIFT_PID_GAIN_D = 0.001;   // tuned!
+	final double LIFT_PID_GAIN_P = 0.000800;   // tuned!
+	final double LIFT_PID_GAIN_I = 0.000000;   // probably don't need I for positional
+	final double LIFT_PID_GAIN_D = 0.000010;   // tuned!
 	final double LIFT_SPEED = 0.45;
     
 	// GRIPPER 
