@@ -13,12 +13,12 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.RobotDrive.MotorType;
 import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PIDController;
-
 
 public class Robot extends IterativeRobot {
 
@@ -43,10 +43,10 @@ public class Robot extends IterativeRobot {
 	final int LIFT_TOP_LIMIT_DIO_CHANNEL = 2;
 	final int LIFT_BOTTOM_LIMIT_DIO_CHANNEL = 3;
 	final int LIFT_MOTOR_CHANNEL = 5;
-	final double LIFT_PID_GAIN_P = 0.000800;   // tuned!
-	final double LIFT_PID_GAIN_I = 0.000000;   // probably don't need I for positional
-	final double LIFT_PID_GAIN_D = 0.000010;   // tuned!
-	final double LIFT_SPEED = 0.45;
+	final double LIFT_PID_GAIN_P = 0.008; //0.0001;   // tuned!
+	final double LIFT_PID_GAIN_I = 0.000;   // probably don't need I for positional
+	final double LIFT_PID_GAIN_D = 0.0005; //0.000;   // tuned!
+	final double LIFT_SPEED = 0.65;
     
 	// GRIPPER 
 	Talon gripper;
@@ -56,12 +56,13 @@ public class Robot extends IterativeRobot {
 	final double GRIPPER_SPEED = 0.80;
 	
 	// ROLLERS
-	Talon rightRoller;
-	Talon leftRoller;
+	Relay rightRoller;
+	Relay leftRoller;
 	Talon rollerArm;
-	final int RIGHT_ROLLER_MOTOR_CHANNEL = 7;
-	final int LEFT_ROLLER_MOTOR_CHANNEL = 8;
+	final int RIGHT_ROLLER_RELAY_CHANNEL = 0;
+	final int LEFT_ROLLER_RELAY_CHANNEL = 1;
 	final int ROLLER_ARM_MOTOR_CHANNEL = 9;
+	  
 	
 	// JOYSTICKS
 	Joystick driveStick;
@@ -72,10 +73,10 @@ public class Robot extends IterativeRobot {
 	final int LIFT_UP_BUTTON = 4;
 	final int GRIPPER_IN_BUTTON = 3;
 	final int GRIPPER_OUT_BUTTON = 2;
-	final int LEFT_SPIN_BUTTON = 5;
-	final int RIGHT_SPIN_BUTTON = 6;
-	final int RECEIVE_AXIS = 2;
-	final int RELEASE_AXIS = 3;
+	final int LEFT_OUT_BUTTON = 5;
+	final int RIGHT_OUT_BUTTON = 6;
+	final int LEFT_IN_AXIS = 2;
+	final int RIGHT_IN_AXIS = 3;
 	final int ROLLER_ARM_OPEN = 9;
 	final int ROLLER_ARM_CLOSE = 10;
 	
@@ -89,11 +90,13 @@ public class Robot extends IterativeRobot {
 		robotDrive.setSafetyEnabled(true); 
 		
 		// lift
+		liftTopLimitSwitch = new DigitalInput(LIFT_TOP_LIMIT_DIO_CHANNEL);
+		liftBottomLimitSwitch = new DigitalInput(LIFT_BOTTOM_LIMIT_DIO_CHANNEL); 
 		lift = new Talon(LIFT_MOTOR_CHANNEL);
 		liftEncoder = new Encoder(LIFT_ENCODER_DIO_CHANNEL_A, LIFT_ENCODER_DIO_CHANNEL_B);
-		liftEncoder.reset();
-		liftTopLimitSwitch = new DigitalInput(LIFT_TOP_LIMIT_DIO_CHANNEL);
-		liftBottomLimitSwitch = new DigitalInput(LIFT_BOTTOM_LIMIT_DIO_CHANNEL);        
+		liftEncoder.setReverseDirection(true);
+		liftEncoder.setIndexSource(liftBottomLimitSwitch);
+		liftEncoder.reset();       
         pidOutput = new SafePIDOutput(lift, liftTopLimitSwitch, liftBottomLimitSwitch);
         liftPID = new PIDController(LIFT_PID_GAIN_P, LIFT_PID_GAIN_I, LIFT_PID_GAIN_D, liftEncoder, pidOutput);
         liftTargetPosition = 0.0;
@@ -104,8 +107,8 @@ public class Robot extends IterativeRobot {
 	    gripPulser.setPulseTime(GRIPPER_PULSE_TIME);
 	    
 	    //rollers
-	    leftRoller = new Talon(LEFT_ROLLER_MOTOR_CHANNEL);
-		rightRoller = new Talon(RIGHT_ROLLER_MOTOR_CHANNEL);
+	    leftRoller = new Relay(LEFT_ROLLER_RELAY_CHANNEL);
+		rightRoller = new Relay(RIGHT_ROLLER_RELAY_CHANNEL);
 		rollerArm = new Talon(ROLLER_ARM_MOTOR_CHANNEL);
 		
 		// JOYSTICK
@@ -129,7 +132,7 @@ public class Robot extends IterativeRobot {
 			if (xboxController.getRawButton(LIFT_UP_BUTTON)) {
 				pidOutput.setOutput(LIFT_SPEED);
 			} else {
-				pidOutput.setOutput(-0.67*LIFT_SPEED);
+				pidOutput.setOutput(-0.5*LIFT_SPEED);
 			}
 			liftTargetPosition = (double)liftEncoder.get();
 		} else {
@@ -139,7 +142,7 @@ public class Robot extends IterativeRobot {
 			liftPID.enable();
 			liftPID.setSetpoint(liftTargetPosition);
 		}
-		
+	
 		
 		//gripPulser.pulseControl(xboxController.getRawButton(GRIPPER_OUT_BUTTON), xboxController.getRawButton(GRIPPER_OUT_BUTTON));
 		
@@ -164,26 +167,24 @@ public class Robot extends IterativeRobot {
         
 	
 	//SAME DIRECTION ROLLING
-		if(xboxController.getRawButton(LEFT_SPIN_BUTTON)){
-			leftRoller.set(1.0);//INVERTED MOTOR
-			rightRoller.set(-1.0);
+		if(xboxController.getRawButton(LEFT_OUT_BUTTON)){
+			leftRoller.set(Relay.Value.kReverse);//INVERTED MOTOR
 	 	}
-		else if(xboxController.getRawButton(RIGHT_SPIN_BUTTON)){
-			leftRoller.set(-1.0);//INVERTED MOTOR
-			rightRoller.set(1.0);
-		}
-	//RECEIVE AND RELEASE
-		else if(xboxController.getRawAxis(RECEIVE_AXIS) > 0.5){
-			leftRoller.set(-1.0); //INVERTED MOTOR
-			rightRoller.set(-1.0);
-		}
-		else if(xboxController.getRawAxis(RELEASE_AXIS) > 0.5){
-			leftRoller.set(1.0);
-			rightRoller.set(1.0);
+		else if(xboxController.getRawAxis(LEFT_IN_AXIS) > 0.5){
+			leftRoller.set(Relay.Value.kForward); //INVERTED MOTOR
 		}
 		else{
-			leftRoller.set(0.0);
-			rightRoller.set(0.0);
+			leftRoller.set(Relay.Value.kOff);
+		}
+		
+		if(xboxController.getRawButton(RIGHT_OUT_BUTTON)){
+			rightRoller.set(Relay.Value.kReverse);//INVERTED MOTOR
+		}
+		else if(xboxController.getRawAxis(RIGHT_IN_AXIS) > 0.5){
+			rightRoller.set(Relay.Value.kForward);
+		}
+		else{
+			rightRoller.set(Relay.Value.kOff);
 		}
 	//ROLLER ARM 
 		if(xboxController.getRawButton(ROLLER_ARM_OPEN)){
@@ -196,6 +197,7 @@ public class Robot extends IterativeRobot {
 			rollerArm.set(0.0);
 		}
 	}
+	
 	public void testPeriodic() {
 		
 	}

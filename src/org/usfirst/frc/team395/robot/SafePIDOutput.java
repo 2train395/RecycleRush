@@ -29,7 +29,7 @@ public class SafePIDOutput implements PIDOutput {
 			return;
 		}
 		
-		setSpeed(output);
+		setSpeed(-1*output);
 	}
 	
 	/**
