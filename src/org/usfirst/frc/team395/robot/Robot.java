@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.Gyro;
 
 public class Robot extends IterativeRobot {
 
@@ -43,9 +44,9 @@ public class Robot extends IterativeRobot {
 	final int LIFT_TOP_LIMIT_DIO_CHANNEL = 2;
 	final int LIFT_BOTTOM_LIMIT_DIO_CHANNEL = 3;
 	final int LIFT_MOTOR_CHANNEL = 5;
-	final double LIFT_PID_GAIN_P = 0.008; //0.0001;   // tuned!
-	final double LIFT_PID_GAIN_I = 0.000;   // probably don't need I for positional
-	final double LIFT_PID_GAIN_D = 0.0005; //0.000;   // tuned!
+	final double LIFT_PID_GAIN_P = 0.001; 
+	final double LIFT_PID_GAIN_I = 0.0000;   // probably don't need I for positional
+	final double LIFT_PID_GAIN_D = 0.0002;
 	final double LIFT_SPEED = 0.65;
     
 	// GRIPPER 
@@ -79,6 +80,11 @@ public class Robot extends IterativeRobot {
 	final int RIGHT_IN_AXIS = 3;
 	final int ROLLER_ARM_OPEN = 9;
 	final int ROLLER_ARM_CLOSE = 10;
+	
+	// ANALOG
+	Gyro gyro;
+	final int GYRO_CHANNEL =  0;
+	final double GYRO_SENSITIVITY = 0.007;
 	
 	public void robotInit() {
 		
@@ -115,7 +121,9 @@ public class Robot extends IterativeRobot {
 		driveStick = new Joystick(driveStickChannel);
 		xboxController = new Joystick(XBOX_CONTROLLER_CHANNEL);
 		
-
+		//ANALOG
+		gyro = new Gyro(GYRO_CHANNEL);
+		gyro.setSensitivity(GYRO_SENSITIVITY);
 	}
 
 	public void autonomousPeriodic() {
@@ -130,20 +138,25 @@ public class Robot extends IterativeRobot {
 			// disable the pid
 			liftPID.disable();
 			if (xboxController.getRawButton(LIFT_UP_BUTTON)) {
+				
 				pidOutput.setOutput(LIFT_SPEED);
-			} else {
+				
+			} 
+			
+			else {
 				pidOutput.setOutput(-0.5*LIFT_SPEED);
 			}
+			
 			liftTargetPosition = (double)liftEncoder.get();
-		} else {
-			pidOutput.setOutput(0);
+		} 
+		
+		else {
+			//pidOutput.setOutput(0);
 			pidOutput.hold();
-			// liftEncoder.reset();
 			liftPID.enable();
 			liftPID.setSetpoint(liftTargetPosition);
 		}
 	
-		
 		//gripPulser.pulseControl(xboxController.getRawButton(GRIPPER_OUT_BUTTON), xboxController.getRawButton(GRIPPER_OUT_BUTTON));
 		
 		if(xboxController.getRawButton(GRIPPER_OUT_BUTTON)){
@@ -156,7 +169,6 @@ public class Robot extends IterativeRobot {
 			gripper.set(0.0);
 		}
 		
-		Timer.delay(0.005);	// wait 5ms to avoid hogging CPU cycles?
 		SmartDashboard.putBoolean("Gripper Out Button", xboxController.getRawButton(GRIPPER_OUT_BUTTON));
 		SmartDashboard.putBoolean("Gripper In Button", xboxController.getRawButton(GRIPPER_IN_BUTTON));
 		SmartDashboard.putBoolean("Limit Switch Upper", liftTopLimitSwitch.get());
@@ -164,6 +176,8 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putNumber("Lift Encoder Value", liftEncoder.get());
 		SmartDashboard.putData("PID Controller", liftPID);
 		SmartDashboard.putNumber("PID Controller Value", liftPID.get());
+		
+		Timer.delay(0.005);	// wait 5ms to avoid hogging CPU cycles?
         
 	
 	//SAME DIRECTION ROLLING

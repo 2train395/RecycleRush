@@ -66,7 +66,7 @@ public class SafePIDOutput implements PIDOutput {
             // if we are too high only let us go down
             if (output > 0) {
                 actualSpeed = 0.0;
-            } 
+            }
             else {
                 actualSpeed = output;
             }
