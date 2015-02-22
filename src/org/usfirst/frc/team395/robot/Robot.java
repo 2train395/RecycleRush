@@ -179,7 +179,7 @@ public class Robot extends IterativeRobot {
 		
 		Timer.delay(0.005);	// wait 5ms to avoid hogging CPU cycles?
         
-	
+	/*
 	//SAME DIRECTION ROLLING
 		if(xboxController.getRawButton(LEFT_OUT_BUTTON)){
 			leftRoller.set(Relay.Value.kReverse);//INVERTED MOTOR
@@ -209,7 +209,7 @@ public class Robot extends IterativeRobot {
 		}
 		else{
 			rollerArm.set(0.0);
-		}
+		}*/
 	}
 	
 	public void testPeriodic() {
