@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.Gyro;
+import edu.wpi.first.wpilibj.Servo;
 
 public class Robot extends IterativeRobot {
 
@@ -86,6 +87,19 @@ public class Robot extends IterativeRobot {
 	final int GYRO_CHANNEL =  0;
 	final double GYRO_SENSITIVITY = 0.007;
 	
+	//SERVO
+	Servo servoMotor;
+	final int SERVO_CHANNEL = 0;
+	final double SERVO_ANGLE = 	90;
+	Timer servoTimer;
+	final double SERVO_TIME = 5.0; 				// Should test and change before using!!!!
+	
+	//AUTONOMOUS
+	final double STOP = 0.0;
+	final double AUTON_SPEED_X = -1.0;		// Can be change and SHOULD be tested
+	final double AUTON_SPEED_Y = 0.0;
+	final double AUTON_SPEED_Z = 0.0;
+	
 	public void robotInit() {
 		
 		// DRIVE
@@ -124,9 +138,59 @@ public class Robot extends IterativeRobot {
 		//ANALOG
 		gyro = new Gyro(GYRO_CHANNEL);
 		gyro.setSensitivity(GYRO_SENSITIVITY);
+		
+		//SERVO
+		servoMotor = new Servo(SERVO_CHANNEL);
+		servoTimer = new Timer();
 	}
 
 	public void autonomousPeriodic() {
+		
+		//		First Version-- Strafing method
+		//Lower side arm by 90 degrees
+		servoMotor.setAngle(SERVO_ANGLE);
+		
+		//Reset and Start the Timer
+		servoTimer.reset();
+		servoTimer.start();
+		
+		while(servoTimer.get() < SERVO_TIME){
+			
+			// Strafe to the left
+			robotDrive.mecanumDrive_Cartesian(AUTON_SPEED_X, AUTON_SPEED_Y, AUTON_SPEED_Z, 0);
+		
+		}
+		
+		servoTimer.stop();
+		robotDrive.mecanumDrive_Cartesian(STOP, STOP, STOP, 0);		// Stop all motors
+		
+		
+		//		Second Version-- Rotating method
+//		//Lower side arm by 90 degrees
+//		servoMotor.setAngle(SERVO_ANGLE);
+//		
+//		//Reset and Start the Timer
+//		servoTimer.reset();
+//		servoTimer.start();
+//		
+//		while(servoTimer.get() < SERVO_TIME){
+//			
+//			// Rotate to the Right
+//			robotDrive.mecanumDrive_Cartesian(0.0, 0.0, -1.0, 0);
+//		
+//		}
+//		
+//  	servoTimer.stop();
+//		servoTimer.reset();
+//		servoTimer.start();
+//		while(servoTimer.get() < SERVO_TIME){
+//			
+//			// Rotate to the Right
+//			robotDrive.mecanumDrive_Cartesian(0.0, 1.0, 0.0, 0);
+//		
+//		}
+//		servoTimer.stop();
+//		robotDrive.mecanumDrive_Cartesian(STOP, STOP, STOP, 0);		// Stop all motors
 
 	}
 
