@@ -163,7 +163,8 @@ public class Robot extends IterativeRobot {
 
 		else if(autonStage == 2){
 			autonTimer.reset();
-			autonTimer.start(); 
+			autonTimer.start();
+			releaser.set(Relay.Value.kReverse);
 			while(autonTimer.get() < ROTATE_TIME){
 				// Rotate to right (Clock-wise)
 				robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 1.0, 0);
@@ -238,7 +239,7 @@ public class Robot extends IterativeRobot {
 		
 		Timer.delay(0.005);	// wait 5ms to avoid hogging CPU cycles?
         
-	
+	/*
 	//SAME DIRECTION ROLLING
 		if(xboxController.getRawButton(LEFT_OUT_BUTTON)){
 			leftRoller.set(Relay.Value.kReverse);//INVERTED MOTOR
@@ -268,7 +269,7 @@ public class Robot extends IterativeRobot {
 		}
 		else{
 			rollerArm.set(0.0);
-		}
+		}*/
 	}
 	
 	public void testPeriodic() {
