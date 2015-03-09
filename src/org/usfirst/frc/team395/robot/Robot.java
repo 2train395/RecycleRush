@@ -88,17 +88,15 @@ public class Robot extends IterativeRobot {
 	final double GYRO_SENSITIVITY = 0.007;
 	
 	//SERVO
-	Servo servoMotor;
-	final int SERVO_CHANNEL = 0;
-	final double SERVO_ANGLE = 	90;
-	Timer servoTimer;
-	final double SERVO_TIME = 5.0; 				// Should test and change before using!!!!
+	Relay releaser;
+	final int RELEASER_CHANNEL = 0;
+	final double RELEASER_TIME = 0.7; 				// Should test and change before using!!!!
 	
 	//AUTONOMOUS
-	final double STOP = 0.0;
-	final double AUTON_SPEED_X = -1.0;		// Can be change and SHOULD be tested
-	final double AUTON_SPEED_Y = 0.0;
-	final double AUTON_SPEED_Z = 0.0;
+	int autonStage = 1;
+	Timer autonTimer;
+	final double ROTATE_TIME = 4.0;
+	final double STRAFE_TIME = 4.0;
 	
 	public void robotInit() {
 		
@@ -140,58 +138,55 @@ public class Robot extends IterativeRobot {
 		gyro.setSensitivity(GYRO_SENSITIVITY);
 		
 		//SERVO
-		servoMotor = new Servo(SERVO_CHANNEL);
-		servoTimer = new Timer();
+		releaser = new Relay(RELEASER_CHANNEL);
+		
+		//AUTON
+		autonTimer = new Timer();
 	}
 
 	public void autonomousPeriodic() {
 		
-		//		First Version-- Strafing method
-		//Lower side arm by 90 degrees
-		servoMotor.setAngle(SERVO_ANGLE);
+		//Second Version-- Rotating method
 		
 		//Reset and Start the Timer
-		servoTimer.reset();
-		servoTimer.start();
-		
-		while(servoTimer.get() < SERVO_TIME){
-			
-			// Strafe to the left
-			robotDrive.mecanumDrive_Cartesian(AUTON_SPEED_X, AUTON_SPEED_Y, AUTON_SPEED_Z, 0);
-		
+		if(autonStage == 1){
+			autonTimer.reset();
+			autonTimer.start(); 
+			while(autonTimer.get() < RELEASER_TIME){
+				// Deploy the side arm
+				releaser.set(Relay.Value.kForward);
+			}
+			autonStage = 2;
+			autonTimer.stop();
+		}
+		//  
+
+		else if(autonStage == 2){
+			autonTimer.reset();
+			autonTimer.start(); 
+			while(autonTimer.get() < ROTATE_TIME){
+				// Rotate to right (Clock-wise)
+				robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 1.0, 0);
+			}
+			autonStage = 3;
+			autonTimer.stop();
 		}
 		
-		servoTimer.stop();
-		robotDrive.mecanumDrive_Cartesian(STOP, STOP, STOP, 0);		// Stop all motors
+		else if(autonStage == 3){
+			autonTimer.reset();
+			autonTimer.start(); 
+			while(autonTimer.get() < STRAFE_TIME){
+				// Strafe backward to autozone
+				robotDrive.mecanumDrive_Cartesian(0.0, -1.0, 0.0, 0);
+			}
+			autonStage = 4;
+			autonTimer.stop();
+		}
 		
-		
-		//		Second Version-- Rotating method
-//		//Lower side arm by 90 degrees
-//		servoMotor.setAngle(SERVO_ANGLE);
-//		
-//		//Reset and Start the Timer
-//		servoTimer.reset();
-//		servoTimer.start();
-//		
-//		while(servoTimer.get() < SERVO_TIME){
-//			
-//			// Rotate to the Right
-//			robotDrive.mecanumDrive_Cartesian(0.0, 0.0, -1.0, 0);
-//		
-//		}
-//		
-//  	servoTimer.stop();
-//		servoTimer.reset();
-//		servoTimer.start();
-//		while(servoTimer.get() < SERVO_TIME){
-//			
-//			// Rotate to the Right
-//			robotDrive.mecanumDrive_Cartesian(0.0, 1.0, 0.0, 0);
-//		
-//		}
-//		servoTimer.stop();
-//		robotDrive.mecanumDrive_Cartesian(STOP, STOP, STOP, 0);		// Stop all motors
-
+		else if(autonStage == 4){
+			// Stop all of the motors
+			robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 0.0, 0);
+		}
 	}
 
 	public void teleopPeriodic() {
