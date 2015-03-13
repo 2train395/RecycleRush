@@ -164,7 +164,6 @@ public class Robot extends IterativeRobot {
 		else if(autonStage == 2){
 			autonTimer.reset();
 			autonTimer.start();
-			releaser.set(Relay.Value.kReverse);
 			while(autonTimer.get() < ROTATE_TIME){
 				// Rotate to right (Clock-wise)
 				robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 1.0, 0);
@@ -177,6 +176,7 @@ public class Robot extends IterativeRobot {
 			autonTimer.reset();
 			autonTimer.start(); 
 			while(autonTimer.get() < STRAFE_TIME){
+				releaser.set(Relay.Value.kReverse);
 				// Strafe backward to autozone
 				robotDrive.mecanumDrive_Cartesian(0.0, -1.0, 0.0, 0);
 			}
