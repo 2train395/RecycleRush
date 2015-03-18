@@ -196,9 +196,16 @@ public class Robot extends IterativeRobot {
 		else if(autonStage == 3){
 			autonTimer.reset();
 			autonTimer.start(); 
+<<<<<<< HEAD
 			while(autonTimer.get() < RELEASER_TIME){
 				// Pull back the side arm
 				retractor.set(Relay.Value.kForward);
+=======
+			while(autonTimer.get() < STRAFE_TIME){
+				releaser.set(Relay.Value.kReverse);
+				// Strafe backward to autozone
+				robotDrive.mecanumDrive_Cartesian(0.0, -1.0, 0.0, 0);
+>>>>>>> dff109f2d40ef7160aca7d01aee823885fba73ac
 			}
 		releaser.set(Relay.Value.kOff);
 			autonStage = 4;
