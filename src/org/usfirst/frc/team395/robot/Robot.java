@@ -1,10 +1,10 @@
-////  ___ _______        _       _____   ____  ____   ____ _______ _____ _____  _____ 
-//// |__ \__   __|      (_)     |  __ \ / __ \|  _ \ / __ \__   __|_   _/ ____|/ ____|
-////    ) | | |_ __ __ _ _ _ __ | |__) | |  | | |_) | |  | | | |    | || |    | (___  
-////   / /  | | '__/ _` | | '_ \|  _  /| |  | |  _ <| |  | | | |    | || |     \___ \ 
-////  / /_  | | | | (_| | | | | | | \ \| |__| | |_) | |__| | | |   _| || |____ ____) |
-//// |____| |_|_|  \__,_|_|_| |_|_|  \_\\____/|____/ \____/  |_|  |_____\_____|_____/ 
-
+//  ___ _______        _       _____   ____  ____   ____ _______ _____ _____  _____ 
+// |__ \__   __|      (_)     |  __ \ / __ \|  _ \ / __ \__   __|_   _/ ____|/ ____|
+//    ) | | |_ __ __ _ _ _ __ | |__) | |  | | |_) | |  | | | |    | || |    | (___  
+//   / /  | | '__/ _` | | '_ \|  _  /| |  | |  _ <| |  | | | |    | || |     \___ \ 
+//  / /_  | | | | (_| | | | | | | \ \| |__| | |_) | |__| | | |   _| || |____ ____) |
+// |____| |_|_|  \__,_|_|_| |_|_|  \_\\____/|____/ \____/  |_|  |_____\_____|_____/ 
+//
 package org.usfirst.frc.team395.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -26,6 +26,7 @@ public class Robot extends IterativeRobot {
 
 	// DRIVE
 	RobotDrive robotDrive;
+	final double DRIVE_FACTOR = 0.8;
 	final int frontLeftChannel	= 1;
 	final int rearLeftChannel	= 2;
 	final int frontRightChannel	= 3;
@@ -55,7 +56,7 @@ public class Robot extends IterativeRobot {
 	PulseController gripPulser;
 	final int GRIPPER_MOTOR_CHANNEL = 6;
 	final double GRIPPER_PULSE_TIME = 0.05;
-	final double GRIPPER_SPEED = 0.80;
+	final double GRIPPER_SPEED = 0.90;
 	
 	// ROLLERS
 	Relay rightRoller;
@@ -77,26 +78,36 @@ public class Robot extends IterativeRobot {
 	final int GRIPPER_OUT_BUTTON = 2;
 	final int LEFT_OUT_BUTTON = 5;
 	final int RIGHT_OUT_BUTTON = 6;
+	final int SIDEARM_IN = 7;
+	final int SIDEARM_OUT = 8;
 	final int LEFT_IN_AXIS = 2;
 	final int RIGHT_IN_AXIS = 3;
 	final int ROLLER_ARM_OPEN = 9;
 	final int ROLLER_ARM_CLOSE = 10;
+	//final int SIDE_ARM_LIFT = 
 	
 	// ANALOG
-	Gyro gyro;
+	//Gyro gyro;
 	final int GYRO_CHANNEL =  0;
 	final double GYRO_SENSITIVITY = 0.007;
 	
-	//SERVO
-	Relay releaser;
-	final int RELEASER_CHANNEL = 0;
-	final double RELEASER_TIME = 0.7; 				// Should test and change before using!!!!
 	
 	//AUTONOMOUS
 	int autonStage = 1;
 	Timer autonTimer;
-	final double ROTATE_TIME = 4.0;
-	final double STRAFE_TIME = 4.0;
+	final double ROTATE_TIME = 1.2;				// TEST BEFORE USING!!!
+	final double STOP_TIME = 1.00;
+	final double MOVE_TIME = 2.15;				// TEST BEFORE USING!!!
+	final double AUTON_SPEED = 0.6;				// TEST!!!!
+	final double ROTATE_SPEED = 0.5;			// TEST!!!!
+	final double WAIT_TIME = 1.5;
+	Relay releaser;
+	Relay retractor;
+	final int RELEASER_CHANNEL = 0;
+	final int RETRACTOR_CHANNEL = 1;
+	final double RELEASER_TIME = 0.1; 				// Should test and change before using!!!!
+	boolean sequenceComplete;
+	
 	
 	public void robotInit() {
 		
@@ -113,7 +124,7 @@ public class Robot extends IterativeRobot {
 		lift = new Talon(LIFT_MOTOR_CHANNEL);
 		liftEncoder = new Encoder(LIFT_ENCODER_DIO_CHANNEL_A, LIFT_ENCODER_DIO_CHANNEL_B);
 		liftEncoder.setReverseDirection(true);
-		liftEncoder.setIndexSource(liftBottomLimitSwitch);
+		//liftEncoder.setIndexSource(liftBottomLimitSwitch);
 		liftEncoder.reset();       
         pidOutput = new SafePIDOutput(lift, liftTopLimitSwitch, liftBottomLimitSwitch);
         liftPID = new PIDController(LIFT_PID_GAIN_P, LIFT_PID_GAIN_I, LIFT_PID_GAIN_D, liftEncoder, pidOutput);
@@ -125,28 +136,33 @@ public class Robot extends IterativeRobot {
 	    gripPulser.setPulseTime(GRIPPER_PULSE_TIME);
 	    
 	    //rollers
-	    leftRoller = new Relay(LEFT_ROLLER_RELAY_CHANNEL);
-		rightRoller = new Relay(RIGHT_ROLLER_RELAY_CHANNEL);
-		rollerArm = new Talon(ROLLER_ARM_MOTOR_CHANNEL);
+//	    leftRoller = new Relay(LEFT_ROLLER_RELAY_CHANNEL);
+//		rightRoller = new Relay(RIGHT_ROLLER_RELAY_CHANNEL);
+//		rollerArm = new Talon(ROLLER_ARM_MOTOR_CHANNEL);
 		
 		// JOYSTICK
 		driveStick = new Joystick(driveStickChannel);
 		xboxController = new Joystick(XBOX_CONTROLLER_CHANNEL);
 		
 		//ANALOG
-		gyro = new Gyro(GYRO_CHANNEL);
-		gyro.setSensitivity(GYRO_SENSITIVITY);
+		//gyro = new Gyro(GYRO_CHANNEL);
+		//gyro.setSensitivity(GYRO_SENSITIVITY);
 		
-		//SERVO
+		// Auton Arm Release
 		releaser = new Relay(RELEASER_CHANNEL);
+		
+		// Arm retract
+		retractor = new Relay(RETRACTOR_CHANNEL);
+		
 		
 		//AUTON
 		autonTimer = new Timer();
+		sequenceComplete = false;
 	}
 
 	public void autonomousPeriodic() {
-		
-		//Second Version-- Rotating method
+//		
+		//First Method-- Rotating method
 		
 		//Reset and Start the Timer
 		if(autonStage == 1){
@@ -154,21 +170,25 @@ public class Robot extends IterativeRobot {
 			autonTimer.start(); 
 			while(autonTimer.get() < RELEASER_TIME){
 				// Deploy the side arm
-				releaser.set(Relay.Value.kForward);
+				releaser.set(Relay.Value.kReverse);
+			}
+			releaser.set(Relay.Value.kOff);
+			while(autonTimer.get() < RELEASER_TIME + WAIT_TIME){
+				robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 0.0, 0);
 			}
 			autonStage = 2;
 			autonTimer.stop();
-		}
-		//  
+			
+		}  
 
 		else if(autonStage == 2){
 			autonTimer.reset();
 			autonTimer.start();
-			releaser.set(Relay.Value.kReverse);
 			while(autonTimer.get() < ROTATE_TIME){
 				// Rotate to right (Clock-wise)
-				robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 1.0, 0);
+				robotDrive.mecanumDrive_Cartesian(0.0, 0.0, ROTATE_SPEED, 0);
 			}
+			robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 0.0, 0);
 			autonStage = 3;
 			autonTimer.stop();
 		}
@@ -176,18 +196,57 @@ public class Robot extends IterativeRobot {
 		else if(autonStage == 3){
 			autonTimer.reset();
 			autonTimer.start(); 
-			while(autonTimer.get() < STRAFE_TIME){
-				// Strafe backward to autozone
-				robotDrive.mecanumDrive_Cartesian(0.0, -1.0, 0.0, 0);
+			while(autonTimer.get() < RELEASER_TIME){
+				// Pull back the side arm
+				retractor.set(Relay.Value.kForward);
 			}
+		releaser.set(Relay.Value.kOff);
 			autonStage = 4;
+			autonTimer.stop();
+		}  
+		
+		else if(autonStage == 4){
+			autonTimer.reset();
+			autonTimer.start(); 
+			while(autonTimer.get() < MOVE_TIME){
+				// Moving backward to autozone
+				//robotDrive.mecanumDrive_Cartesian(0.0, -AUTON_SPEED, 0.0, 0);
+			}
+			robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 0.0, 0);
+			autonStage = 5;
 			autonTimer.stop();
 		}
 		
-		else if(autonStage == 4){
+		else if(autonStage == 5){
 			// Stop all of the motors
 			robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 0.0, 0);
 		}
+		
+		//Second Method- Move forward
+//		
+//		if(!sequenceComplete){
+//			autonTimer.reset();
+//			autonTimer.start();
+//		}
+//		
+//		while (autonTimer.get() < MOVE_TIME){
+//			 
+//			robotDrive.mecanumDrive_Cartesian(0.0,-AUTON_SPEED, 0.0, 0);
+//			
+//		}
+//		while (autonTimer.get() < MOVE_TIME + STOP_TIME){
+//			 
+//			robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 0.0, 0);
+//			
+//		}
+//		while (autonTimer.get() < MOVE_TIME + STOP_TIME + ROTATE_TIME){
+//			 
+//			robotDrive.mecanumDrive_Cartesian(0.0, 0.0, ROTATE_SPEED, 0);
+//			
+//		}
+//		robotDrive.mecanumDrive_Cartesian(0.0, 0.0, 0.0, 0);
+//		sequenceComplete = true;
+//		autonTimer.stop();
 	}
 
 	public void teleopPeriodic() {
@@ -227,6 +286,17 @@ public class Robot extends IterativeRobot {
 		}
 		else{
 			gripper.set(0.0);
+		}
+		
+		// Retract/Extend Side-Arm
+		if(xboxController.getRawButton(SIDEARM_IN)){
+			retractor.set(Relay.Value.kReverse);
+		}
+		else if(xboxController.getRawButton(SIDEARM_OUT)){
+			retractor.set(Relay.Value.kForward);		
+		}
+		else{
+			retractor.set(Relay.Value.kOff);
 		}
 		
 		SmartDashboard.putBoolean("Gripper Out Button", xboxController.getRawButton(GRIPPER_OUT_BUTTON));
@@ -278,7 +348,7 @@ public class Robot extends IterativeRobot {
 	
 	public void manualDrive() {
 				
-		robotDrive.mecanumDrive_Cartesian(driveStick.getX(), driveStick.getY(), driveStick.getZ(), 0);
+		robotDrive.mecanumDrive_Cartesian(DRIVE_FACTOR*driveStick.getX(), DRIVE_FACTOR*driveStick.getY(), DRIVE_FACTOR*driveStick.getZ(), 0);
 	}
 		
 }
